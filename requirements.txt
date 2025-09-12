@@ -1,0 +1,15 @@
+# model
+pandas
+numpy
+matplotlib
+scikit-learn
+xgboost
+lightgbm
+seaborn
+jobli
+
+# dashboard
+streamlit
+plotly
+kaggle
+requests
