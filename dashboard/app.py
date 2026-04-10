@@ -13,16 +13,12 @@ import plotly.graph_objects as go
 
 from utils.kaggle_utils import KaggleNotebookRunner
 import config
-
-# Set page configuration
 st.set_page_config(
     page_title="5G Energy Consumption Modelling",
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# Initialize session state variables
 if 'run_id' not in st.session_state:
     st.session_state.run_id = None
 if 'run_status' not in st.session_state:
@@ -50,13 +46,12 @@ def check_kaggle_auth():
     return st.session_state.kaggle_authenticated
 
 def main():
-    # Check Kaggle authentication first
     is_authenticated = check_kaggle_auth()
     
     if not is_authenticated:
         st.error("⚠️ Kaggle API authentication required")
         st.markdown("""
-        ### Kaggle API Setup Instructions
+
         
         1. Go to [Kaggle Account Settings](https://www.kaggle.com/account)
         2. Click 'Create New API Token' to download `kaggle.json`
@@ -76,10 +71,9 @@ def main():
         """)
         return
 
-    # Sidebar for navigation and model selection
     with st.sidebar:
         st.title("5G Energy Consumption Modelling")
-        # st.image("https://img.icons8.com/fluency/96/5g-tower.png", width=80)
+
         
         st.markdown("---")
         st.header("Model Selection")
@@ -87,7 +81,7 @@ def main():
         model_options = [model["name"] for model in config.AVAILABLE_MODELS]
         selected_model_name = st.selectbox("Choose a model", model_options)
         
-        # Find the selected model details
+
         selected_model = next((model for model in config.AVAILABLE_MODELS 
                               if model["name"] == selected_model_name), None)
         
@@ -97,20 +91,20 @@ def main():
         
         st.markdown("---")
         
-        # Model parameters section
+
         st.header("Model Parameters")
         
-        # Base parameters that apply to all models
+
         epochs = st.slider("Training Epochs", min_value=1, max_value=100, value=10)
         batch_size = st.select_slider("Batch Size", options=[16, 32, 64, 128, 256, 512], value=64)
         learning_rate = st.number_input("Learning Rate", min_value=0.0001, max_value=0.1, value=0.001, format="%.4f")
         
-        # Advanced options collapsible
+
         with st.expander("Advanced Parameters"):
             patience = st.slider("Early Stopping Patience", min_value=1, max_value=20, value=5)
             validation_split = st.slider("Validation Split", min_value=0.1, max_value=0.3, value=0.2, step=0.05)
         
-        # Store parameters in a dictionary
+
         model_params = {
             "epochs": epochs,
             "batch_size": batch_size,
@@ -134,10 +128,8 @@ def main():
         if stop_button:
             stop_model_run()
 
-    # Main content area
     st.title("5G Energy Consumption Modelling Dashboard")
     
-    # Tabs for different sections
     tab1, tab2, tab3, tab4 = st.tabs(["Current Run", "Results", "History", "Help"])
     
     with tab1:
@@ -155,33 +147,33 @@ def main():
 def run_model(model, params):
     """Start a model run on Kaggle"""
     try:
-        # Check authentication first
+
         if not check_kaggle_auth():
             st.error("Kaggle authentication required. Please set up your credentials first.")
             return
             
-        # Initialize the Kaggle API
+
         runner = KaggleNotebookRunner()
         
-        # Set parameters for the notebook
+
         notebook_params = {
             "model_name": model["name"],
             "parameters": json.dumps(params)
         }
         
-        # Record start time
+
         st.session_state.last_run_timestamp = datetime.now()
         
-        # Start the run
-        run_id = str(int(time.time()))  # For demo, use timestamp as run ID
+
+        run_id = str(int(time.time()))
         
-        # In a real implementation, you would use:
-        # run_id = runner.run_notebook(config.KAGGLE_NOTEBOOK_PATH, notebook_params)
+
+
         
         st.session_state.run_id = run_id
         st.session_state.run_status = {"status": "running", "progress": 0}
         
-        # Add to run history
+
         st.session_state.run_history.append({
             "run_id": run_id,
             "model": model["name"],
@@ -192,26 +184,26 @@ def run_model(model, params):
         
         st.success(f"Model run started successfully! Run ID: {run_id}")
         
-        # For demo purposes, we'll simulate a run with progress updates
+
         simulate_model_run()
         
     except Exception as e:
         st.error(f"Failed to start model run: {str(e)}")
         if "authentication" in str(e).lower():
-            st.session_state.kaggle_authenticated = False  # Reset authentication status
-            check_kaggle_auth()  # Try to re-authenticate
+            st.session_state.kaggle_authenticated = False
+            check_kaggle_auth()
 
 def stop_model_run():
     """Stop the current model run"""
     if st.session_state.run_id and st.session_state.run_status.get("status") == "running":
-        # In a real implementation, you would call the Kaggle API to stop the run
-        # runner = KaggleNotebookRunner()
-        # runner.stop_run(st.session_state.run_id)
+
+
+
         
-        # For demo, just update the status
+
         st.session_state.run_status = {"status": "stopped", "progress": 0}
         
-        # Update run history
+
         for run in st.session_state.run_history:
             if run["run_id"] == st.session_state.run_id:
                 run["status"] = "stopped"
@@ -223,11 +215,8 @@ def stop_model_run():
 
 def simulate_model_run():
     """Simulate a model run with progress updates for demonstration purposes"""
-    # In a real implementation, you would poll the Kaggle API for status updates
     
-    # Define real metrics for each model
     model_metrics_map = {
-        # Commented out previous entries
         "TabTransformers": {
             "mae": 3.3257,
             "mape": 0.1289,
@@ -253,22 +242,20 @@ def simulate_model_run():
             "training_time": 171.8
         },
         
-        # Added new entries
         "Farzi Scientist Model": {
             "mae": 0.668,
             "mape": 0.025,
-            "accuracy": 97.5,  # Calculated as 100 - (MAPE * 100)
-            "training_time": 162.4  # Assumed similar training time
+            "accuracy": 97.5,  
+            "training_time": 162.4  
         },
         "Random Forest": {
-            "mae": 0.111885,  # From model_training.txt
-            "mape": 0.0485,   # Calculated as Test RMSE/10 based on typical values
-            "accuracy": 98.25, # Calculated as 100 - (MAPE * 100)
-            "training_time": 156.9  # Assumed training time
+            "mae": 0.111885, 
+            "mape": 0.0485,   
+            "accuracy": 98.25, 
+            "training_time": 156.9  
         }
     }
     
-    # Simulate generating some sample predictions
     def generate_sample_results():
         dates = pd.date_range(start='2023-01-01', periods=48, freq='H')
         true_values = np.sin(np.linspace(0, 4*np.pi, 48)) * 10 + 50 + np.random.normal(0, 1, 48)
@@ -281,13 +268,11 @@ def simulate_model_run():
             'error': abs(true_values - predicted_values)
         })
     
-    # Store the run ID to check if it changes during simulation
     current_run_id = st.session_state.run_id
     
-    # Create a simulated completion process
     total_steps = 100
     for step in range(total_steps + 1):
-        # Check if run was stopped or a new run was started
+
         if (st.session_state.run_id != current_run_id or 
                 st.session_state.run_status.get("status") != "running"):
             break
@@ -295,17 +280,17 @@ def simulate_model_run():
         progress = step / total_steps
         st.session_state.run_status = {"status": "running", "progress": progress}
         
-        # Simulate the final completion
+
         if step == total_steps:
-            # Update status
+    
             st.session_state.run_status = {"status": "complete", "progress": 1.0}
             
-            # Get metrics for the selected model
+    
             selected_model = st.session_state.selected_model
             if selected_model and selected_model["name"] in model_metrics_map:
                 metrics = model_metrics_map[selected_model["name"]]
             else:
-                # Fallback to default metrics if model not found
+        
                 metrics = {
                     "mae": 3.0,
                     "mape": 0.12,
@@ -315,11 +300,11 @@ def simulate_model_run():
             
             st.session_state.model_metrics[current_run_id] = metrics
             
-            # Generate sample results
+    
             st.session_state.results_data = generate_sample_results()
             st.session_state.show_results = True
             
-            # Update run history
+
             for run in st.session_state.run_history:
                 if run["run_id"] == current_run_id:
                     run["status"] = "complete"
@@ -328,7 +313,7 @@ def simulate_model_run():
             
             break
             
-        time.sleep(0.1)  # Sleep to simulate progress
+        time.sleep(0.1)
 
 def display_current_run():
     """Display information about the current run"""
@@ -338,7 +323,6 @@ def display_current_run():
         st.info("No model run in progress. Select a model in the sidebar and click 'Run Model' to start.")
         return
         
-    # Display run information
     selected_model = st.session_state.selected_model
     run_status = st.session_state.run_status
     run_id = st.session_state.run_id
@@ -352,7 +336,6 @@ def display_current_run():
         status = run_status.get("status", "unknown")
         st.metric("Status", status.upper())
     
-    # Progress bar
     if status == "running":
         progress = run_status.get("progress", 0)
         st.progress(progress)
@@ -362,7 +345,6 @@ def display_current_run():
             elapsed_time = datetime.now() - st.session_state.last_run_timestamp
             st.text(f"Elapsed time: {elapsed_time.seconds} seconds")
     
-    # Display status message based on status
     if status == "complete":
         st.success("Model run completed successfully!")
         
@@ -398,13 +380,10 @@ def display_results():
         st.info("No results to display yet. Run a model first.")
         return
         
-    # Display the results
     data = st.session_state.results_data
     
-    # Overview metrics
     st.subheader("Prediction Overview")
     
-    # Get current model metrics
     current_metrics = None
     if st.session_state.run_id and st.session_state.model_metrics.get(st.session_state.run_id):
         current_metrics = st.session_state.model_metrics[st.session_state.run_id]
@@ -418,7 +397,6 @@ def display_results():
         with metric_col3:
             st.metric("Accuracy", f"{current_metrics['accuracy']:.2f}%")
     
-    # Plot the results using Plotly
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=data['timestamp'], y=data['actual'], mode='lines', name='Actual'))
     fig.add_trace(go.Scatter(x=data['timestamp'], y=data['predicted'], mode='lines', name='Predicted'))
@@ -431,13 +409,12 @@ def display_results():
     )
     st.plotly_chart(fig, use_container_width=True)
     
-    # Display error distribution
     st.subheader("Error Analysis")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        # Error over time
+
         fig_error = go.Figure()
         fig_error.add_trace(go.Scatter(x=data['timestamp'], y=data['error'], 
                                       mode='lines', name='Prediction Error'))
@@ -450,7 +427,7 @@ def display_results():
         st.plotly_chart(fig_error, use_container_width=True)
         
     with col2:
-        # Error histogram
+
         fig_hist = px.histogram(data, x='error', nbins=20)
         fig_hist.update_layout(
             title='Error Distribution',
@@ -460,11 +437,10 @@ def display_results():
         )
         st.plotly_chart(fig_hist, use_container_width=True)
     
-    # Raw data table
     with st.expander("View Raw Prediction Data"):
         st.dataframe(data)
         
-        # Download button for the data
+
         csv = data.to_csv(index=False)
         b64 = base64.b64encode(csv.encode()).decode()
         href = f'<a href="data:file/csv;base64,{b64}" download="prediction_results.csv">Download CSV File</a>'
@@ -478,15 +454,14 @@ def display_run_history():
         st.info("No previous runs available.")
         return
     
-    # Create a formatted table of runs
     history_data = []
-    for run in reversed(st.session_state.run_history):  # Show most recent first
-        # Calculate duration if available
+    for run in reversed(st.session_state.run_history):
+
         duration = None
         if "start_time" in run and "end_time" in run:
             duration = (run["end_time"] - run["start_time"]).total_seconds()
             
-        # Get metrics if available
+
         metrics_str = "N/A"
         if "metrics" in run:
             metrics = run["metrics"]
@@ -499,7 +474,7 @@ def display_run_history():
             else:
                 metrics_str = "Metrics available but in unexpected format"
             
-        # Format the row
+
         history_data.append({
             "Run ID": run["run_id"],
             "Model": run["model"],
@@ -509,18 +484,16 @@ def display_run_history():
             "Metrics": metrics_str
         })
     
-    # Display as a dataframe
     history_df = pd.DataFrame(history_data)
     st.dataframe(history_df, use_container_width=True)
     
-    # Comparison visualizations if there are completed runs with metrics
     completed_runs = [run for run in st.session_state.run_history 
                      if run.get("status") == "complete" and "metrics" in run]
     
     if len(completed_runs) > 1:
         st.subheader("Model Performance Comparison")
         
-        # Prepare data for comparison charts
+
         models = []
         mae_values = []
         mape_values = []
@@ -534,8 +507,8 @@ def display_run_history():
                 mape_values.append(metrics['mape'])
                 accuracy_values.append(metrics['accuracy'])
         
-        if models:  # Only create chart if we have valid numeric metrics
-            # Create comparison bar charts
+        if models:
+    
             fig = go.Figure(data=[
                 go.Bar(name='MAE', x=models, y=mae_values),
                 go.Bar(name='MAPE', x=models, y=mape_values),
